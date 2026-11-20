@@ -19,7 +19,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
-  body { padding: env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom)); }
+  body { padding: env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; }
   header { display: flex; align-items: center; justify-content: space-between; padding: 16px 2px 8px; }
   h1 { font-size: 22px; margin: 0; letter-spacing: .2px; }
   .sub { color: var(--muted); font-size: 12px; margin-top: 3px; }
@@ -34,6 +34,10 @@
   .tile .s { font-size: 11.5px; color: var(--dim); margin-top: 3px; }
   .card { background: var(--card); border-radius: 14px; padding: 12px; margin-top: 12px; border: 1px solid var(--line); }
   .card h2 { font-size: 14px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+  .card.chart { background: #FFFFFF; border-color: #D8E6DD; }
+  .card.chart h2 { color: #1B4332; }
+  .card.chart .legend { color: #1F2937; }
+  .card.chart .empty { color: #4B5563; }
   svg { width: 100%; height: auto; display: block; }
   table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   th { text-align: right; color: var(--muted); font-weight: 600; padding: 6px 4px; border-bottom: 1px solid var(--line); }
@@ -78,11 +82,11 @@
     <div class="tile wide"><div class="l">Today</div><div class="v" id="t-today">-</div><div class="s" id="t-today-s"></div></div>
   </section>
 
-  <div class="card"><h2>Daily km, last 30 days</h2><div id="c-daily"></div></div>
-  <div class="card"><h2>Weekly km, last 8 weeks</h2><div id="c-weekly"></div></div>
-  <div class="card"><h2>Pace trend, last 20 runs (lower is better)</h2><div id="c-pace"></div></div>
-  <div class="card"><h2>Weight trend (kg)</h2><div id="c-weight"></div></div>
-  <div class="card"><h2>Workouts by muscle group this month (sets)</h2><div id="c-muscle"></div></div>
+  <div class="card chart"><h2>Daily km, last 30 days</h2><div id="c-daily"></div></div>
+  <div class="card chart"><h2>Weekly km, last 8 weeks</h2><div id="c-weekly"></div></div>
+  <div class="card chart"><h2>Pace trend, last 20 runs (lower is better)</h2><div id="c-pace"></div></div>
+  <div class="card chart"><h2>Weight trend (kg)</h2><div id="c-weight"></div></div>
+  <div class="card chart"><h2>Workouts by muscle group this month (sets)</h2><div id="c-muscle"></div></div>
 
   <div class="card"><h2>Weeks (Mon to Sun), previous and current month</h2><div id="tb-weeks"></div></div>
   <div class="card"><h2>Month-wise</h2><div id="tb-months"></div></div>
@@ -124,16 +128,16 @@ function bars(rows, color, opts = {}) {
   let g = '';
   for (let i = 0; i <= 4; i++) {
     const y = T + (H - T - B) * (1 - i / 4);
-    g += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#2D6A4F" stroke-width=".5"/>` +
-         `<text x="${L - 4}" y="${y + 3}" fill="#7FA88F" font-size="9" text-anchor="end">${(max * i / 4).toFixed(0)}</text>`;
+    g += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#E5E7EB" stroke-width=".8"/>` +
+         `<text x="${L - 4}" y="${y + 3}" fill="#4B5563" font-size="9" text-anchor="end">${(max * i / 4).toFixed(0)}</text>`;
   }
   rows.forEach((r, i) => {
     const v = vals[i], h = (H - T - B) * v / max, x = L + i * bw + bw * 0.15, y = H - B - h;
-    g += `<rect x="${x}" y="${y}" width="${bw * 0.7}" height="${Math.max(h, 0)}" rx="2" fill="${color}" stroke="#B7E4C7" stroke-width=".4"/>`;
-    if (opts.labels && v > 0) g += `<text x="${x + bw * 0.35}" y="${y - 3}" fill="#FFFFFF" font-size="9" text-anchor="middle">${v.toFixed(1)}</text>`;
+    g += `<rect x="${x}" y="${y}" width="${bw * 0.7}" height="${Math.max(h, 0)}" rx="2" fill="${color}"/>`;
+    if (opts.labels && v > 0) g += `<text x="${x + bw * 0.35}" y="${y - 3}" fill="#111827" font-size="9" text-anchor="middle">${v.toFixed(1)}</text>`;
     const every = opts.every || 1;
     if (i % every === 0 || i === rows.length - 1)
-      g += `<text x="${x + bw * 0.35}" y="${H - 8}" fill="#B7E4C7" font-size="8.5" text-anchor="middle">${esc(r[0])}</text>`;
+      g += `<text x="${x + bw * 0.35}" y="${H - 8}" fill="#374151" font-size="8.5" text-anchor="middle">${esc(r[0])}</text>`;
   });
   return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
@@ -150,14 +154,14 @@ function line(rows, color, fmt, toNum) {
   let g = '';
   for (let i = 0; i <= 3; i++) {
     const v = lo + (hi - lo) * i / 3, y = Y(v);
-    g += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#2D6A4F" stroke-width=".5"/>` +
-         `<text x="${L - 4}" y="${y + 3}" fill="#7FA88F" font-size="9" text-anchor="end">${fmt(v)}</text>`;
+    g += `<line x1="${L}" x2="${W}" y1="${y}" y2="${y}" stroke="#E5E7EB" stroke-width=".8"/>` +
+         `<text x="${L - 4}" y="${y + 3}" fill="#4B5563" font-size="9" text-anchor="end">${fmt(v)}</text>`;
   }
   g += `<polyline fill="none" stroke="${color}" stroke-width="2.5" points="${pts.map((p, i) => X(i) + ',' + Y(p[1])).join(' ')}"/>`;
   pts.forEach((p, i) => { g += `<circle cx="${X(i)}" cy="${Y(p[1])}" r="3" fill="${color}" stroke="#FFFFFF" stroke-width="1"/>`; });
   const step = Math.max(1, Math.ceil(pts.length / 5));
   pts.forEach((p, i) => { if (i % step === 0 || i === pts.length - 1)
-    g += `<text x="${X(i)}" y="${H - 8}" fill="#B7E4C7" font-size="8.5" text-anchor="middle">${esc(p[0])}</text>`; });
+    g += `<text x="${X(i)}" y="${H - 8}" fill="#374151" font-size="8.5" text-anchor="middle">${esc(p[0])}</text>`; });
   return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
 }
 
@@ -170,10 +174,10 @@ function donut(rows) {
     const b = a + 2 * Math.PI * v / tot, big = b - a > Math.PI ? 1 : 0;
     const p = (ang, rad) => (cx + rad * Math.cos(ang)).toFixed(2) + ' ' + (cy + rad * Math.sin(ang)).toFixed(2);
     g += v >= tot ? `<circle cx="${cx}" cy="${cy}" r="${(R + r) / 2}" fill="none" stroke="${C[i % 6]}" stroke-width="${R - r}"/>`
-      : `<path d="M ${p(a, R)} A ${R} ${R} 0 ${big} 1 ${p(b, R)} L ${p(b, r)} A ${r} ${r} 0 ${big} 0 ${p(a, r)} Z" fill="${C[i % 6]}" stroke="#163B2C" stroke-width="1.5"/>`;
+      : `<path d="M ${p(a, R)} A ${R} ${R} 0 ${big} 1 ${p(b, R)} L ${p(b, r)} A ${r} ${r} 0 ${big} 0 ${p(a, r)} Z" fill="${C[i % 6]}" stroke="#FFFFFF" stroke-width="1.5"/>`;
     a = b;
   });
-  g += `<text x="${cx}" y="${cy + 5}" fill="#FFFFFF" font-size="16" font-weight="700" text-anchor="middle">${tot}</text>`;
+  g += `<text x="${cx}" y="${cy + 5}" fill="#111827" font-size="16" font-weight="700" text-anchor="middle">${tot}</text>`;
   const leg = rows.map((rw, i) => `<span style="--k:${C[i % 6]}">${esc(rw[0])} (${esc(rw[1])})</span>`).join('');
   return `<svg viewBox="0 0 160 150" style="max-width:220px;margin:auto">${g}</svg><div class="legend">${leg}</div>`;
 }
