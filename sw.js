@@ -1,6 +1,6 @@
 // App shell cache. Data from Apps Script is never cached here; the page keeps
 // the last good copy in localStorage for offline viewing.
-const CACHE = 'fitness-tracker-v1';
+const CACHE = 'fitness-tracker-v3';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
